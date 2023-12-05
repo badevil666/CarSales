@@ -3,13 +3,14 @@
 #include <time.h>
 #include "customer.h"
 
-typedef struct sale {
+typedef struct sale 
+{
     char modelName[100];
     float totalPrice;
     int discountGiven;
     float discountValue;
     int numberOfCars;
-    customer Customer;
+    Customer customer;
     time_t purchaseDate;
 } Sale;
 #endif // SALE_H

@@ -4,11 +4,52 @@
 #include <stdbool.h>
 #include <time.h>
 
-#include "constants.h"
+
 #include "car.h"
 #include "sale.h"
 #include "feedback.h"
 #include "customer.h"
+
+#define CUSTOMER 'c'
+#define ADMIN 'a'
+#define DISCOUNT_MIN_AGE 18
+#define DISCOUNT_MAX_AGE 25
+#define DISCOUNT_PERCENTAGE 0.1f
+#define MAX_FEEDBACK_LENGTH 500
+
+typedef struct feedback 
+{
+    Customer customer;  // Reuse the Customer structure
+    char comments[200];
+    int rating;  // Assuming an integer rating, you can adjust based on your needs
+} Feedback;
+
+typedef struct customer 
+{
+    char name[50];
+    int age;
+} Customer;
+
+typedef struct sale 
+{
+    char modelName[100];
+    float totalPrice;
+    int discountGiven;
+    float discountValue;
+    int numberOfCars;
+    Customer customer;
+    time_t purchaseDate;
+} Sale;
+
+typedef struct car
+{
+    char modelName[100];
+    int yearOfManufacture;
+    int availability;
+    float price;
+} Car;
+
+
 
 unsigned int totalCars = 0;
 unsigned int totalSales = 0;
@@ -151,8 +192,8 @@ void buyCar() {
     
     sales[totalSales].discountValue = price;
     sales[totalSales].numberOfCars = quantity;
-    strcpy(sales[totalSales].Customer.name, customerName);
-    sales[totalSales].Customer.age = customerAge;
+    strcpy(sales[totalSales].customer.name, customerName);
+    sales[totalSales].customer.age = customerAge;
     sales[totalSales].purchaseDate = time(NULL);
     // Open the sales.csv file in append mode
     FILE *salesFile = openFile("sales.csv", "a");
@@ -191,8 +232,8 @@ void buyCar() {
     }
 
     printf("Number of Cars: %d\n", sales[totalSales - 1].numberOfCars);
-    printf("Customer Name: %s\n", sales[totalSales - 1].Customer.name);
-    printf("Customer Age: %d\n", sales[totalSales - 1].Customer.age);
+    printf("Customer Name: %s\n", sales[totalSales - 1].customer.name);
+    printf("Customer Age: %d\n", sales[totalSales - 1].customer.age);
     printf("Purchase Date: %s", ctime(&sales[totalSales - 1].purchaseDate));
     printf("Final Amount: $%.2f\n", price);  // Corrected the format specifier
     printf("************* THANK YOU FOR YOUR PURCHASE *************\n");  
@@ -216,8 +257,8 @@ void viewSalesData()
                sales[i].totalPrice, 
                sales[i].discountGiven ? "Yes" : "No", 
                sales[i].discountValue, 
-               sales[i].Customer.name, 
-               sales[i].Customer.age, 
+               sales[i].customer.name, 
+               sales[i].customer.age, 
                ctime(&sales[i].purchaseDate));
     }
 
@@ -238,7 +279,7 @@ void viewCustomerFeedback()
     printf("%-20s%-50s%-10s\n", "Customer Name", "Comments", "Rating");
 
     for (i = 0; i < totalFeedbacks; i++) {
-        printf("%-20s%-50s%-10d\n", feedback[i].Customer.name, feedback[i].comments, feedback[i].rating);
+        printf("%-20s%-50s%-10d\n", feedback[i].customer.name, feedback[i].comments, feedback[i].rating);
     }
 
     printf("\n************* END OF FEEDBACKS *************\n");
@@ -265,7 +306,7 @@ void getCustomerFeedback()
         exit(EXIT_FAILURE);
     }
 
-    strcpy(feedback[totalFeedbacks].Customer.name, customerName);
+    strcpy(feedback[totalFeedbacks].customer.name, customerName);
     snprintf(feedback[totalFeedbacks].comments, sizeof(feedback[totalFeedbacks].comments), "%s", comments);
     feedback[totalFeedbacks].rating = (rating >= 1 && rating <= 5) ? rating : 0;
 
@@ -311,7 +352,19 @@ void clearScreen()
 
 void sort()
 {
-
+    for (int i = 0; i < totalCars - 1; i++) 
+    {
+        for (int j = 0; j < totalCars - i - 1; j++) 
+        {
+            if (cars[j].yearOfManufacture > cars[j + 1].yearOfManufacture) 
+            {
+                // Swap cars[j] and cars[j + 1]
+                Car temp = cars[j];
+                cars[j] = cars[j + 1];
+                cars[j + 1] = temp;
+            }
+        }
+    }
 
 }
 
@@ -363,53 +416,67 @@ int main()
 
     scanf("%c", &userType);
 
-    
-    if (userType == ADMIN) 
+    switch (userType) 
     {
-        while (true) 
-        {
-            printf("1] Add new Stock.\n");
-            printf("2] View Sales Data.\n");
-            
-            
-            break;
-        }
+        case ADMIN:
+                    while (true)
+                    {
+                        printf("1] Add new Stock.\n");
+                        printf("2] View Sales Data.\n");
+                        printf("3] EXIT\n");
+                        printf("Enter your choice: ");
+                        prompt(msg);
+
+                        while (getchar() != '\n');
+                        scanf("%d", &choice);
+
+                        switch (choice) 
+                        {
+                            case 1: addNewStock();
+                                    break;
+                            case 2: viewSalesData(); 
+                                    break;
+                            case 3: goto exit;  // Using goto to break out of the loop
+                            default: printf("Invalid choice\n");
+                        }
+                    }
+                    break;
+        case CUSTOMER:
+                       while (true) 
+                       {
+                        printf("1] View Stocks.\n");
+                        printf("2] Buy a car.\n");
+                        printf("3] View or add Customer feedback.\n");
+                        printf("4] Exit\n");
+                        printf("Enter your choice: ");
+                        prompt(msg);
+
+                        while (getchar() != '\n');
+                        scanf("%d", &choice);
+
+                        clearScreen();
+
+                        switch (choice) 
+                        {
+                            case 1: viewStocks(); 
+                                    break;
+                            case 2: buyCar(); 
+                                    break;
+                            case 3: customerFeedback(); 
+                                    break;
+                            case 4: goto exit;  // Using goto to break out of the loop
+                            default: printf("Invalid choice\n");
+                        }
+                        
+                    }
+                    break;
+        default:
+            // Invalid user type
+                    fprintf(stderr, "Invalid user type. Exiting.\n");
+                    exit(EXIT_FAILURE);
     }
-    else if(userType == CUSTOMER)
-    {
-        while (true) 
-        {
-            printf("What would you like to do.\n\n");
-            printf("1] View Stocks.\n");
-            printf("2] Buy a car.\n");
-            printf("3] View or add Customer feedback.\n");
-            printf("Enter your choice: ");
 
-            
-            while (getchar() != '\n');
-
-            scanf("%d", &choice);
-
-            clearScreen();
-
-            switch (choice) {
-                case 1: viewStocks(); break;
-                case 2: buyCar(); break;
-                case 3: customerFeedback(); break;
-                default: printf("<<<<<-----Invalid choice----->>>>>\n");
-            }
-
-            
-            break;
-        }
-    }
-    else 
-    {
-        // Invalid user type
-        fprintf(stderr, "Invalid user type. Exiting.\n");
-        exit(EXIT_FAILURE);
-    }
-
+exit:
     // Free allocated memory before exiting
     free(cars);
     free(sales);
