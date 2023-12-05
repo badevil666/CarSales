@@ -1,44 +1,34 @@
-# CarSales
-# Car Dealership Management System
+# Car Sales Management System
 
-A simple Car Dealership Management System that allows users to manage inventory, process sales, and gather customer feedback.
+Welcome to the Car Sales Management System, a simple console-based application to manage car sales, stocks, and customer feedback.
 
 ## Table of Contents
 
+- [Introduction](#introduction)
 - [Features](#features)
 - [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
 - [Usage](#usage)
-  - [Admin](#admin)
-  - [Customer](#customer)
-- [Functionality](#functionality)
-  - [1. Add New Stock](#1-add-new-stock)
-  - [2. View Sales Data](#2-view-sales-data)
-  - [3. View Stocks](#3-view-stocks)
-  - [4. Buy a Car](#4-buy-a-car)
-  - [5. View or Add Customer Feedback](#5-view-or-add-customer-feedback)
 - [Contributing](#contributing)
 - [License](#license)
 
+## Introduction
+
+This project is a basic car sales management system implemented in C. It allows users to add new stocks, view sales data, purchase cars, view available stocks, and provide feedback on the service.
+
 ## Features
 
-- Add new stock to the inventory.
-- View sales data.
-- View available car stocks.
-- Buy a car and generate purchase receipts.
-- Collect and view customer feedback.
+- **Admin Module**
+  - Add new stock to the inventory.
+  - View sales data.
+
+- **Customer Module**
+  - View available car stocks.
+  - Purchase cars with possible discounts.
+  - Provide feedback on the service.
 
 ## Getting Started
 
-### Prerequisites
-
-- C compiler (e.g., GCC)
-- Make sure you have the necessary dependencies installed.
-
-### Installation
-
-1. Clone the repository:
-
+1. **Clone the Repository:**
    ```bash
-   git clone https://github.com/yourusername/car-dealership.git
+   git clone https://github.com/badevil666/CarSales.git
+   cd CarSales
