@@ -75,9 +75,8 @@ void buyCar()
 {
     char choice;
     char customerName[50];
-    
+
     int carIndex, quantity;
-    printf
     choice = getCharFromUser("Would you like to re-view the stock before proceeding to buy..\n");
     prompt(msg);
 
