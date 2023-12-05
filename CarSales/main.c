@@ -4,12 +4,12 @@
 #include <stdbool.h>
 #include <time.h>
 
-
+/*
 #include "car.h"
 #include "sale.h"
 #include "feedback.h"
 #include "customer.h"
-
+*/
 #define CUSTOMER 'c'
 #define ADMIN 'a'
 #define DISCOUNT_MIN_AGE 18
@@ -17,18 +17,18 @@
 #define DISCOUNT_PERCENTAGE 0.1f
 #define MAX_FEEDBACK_LENGTH 500
 
+typedef struct customer 
+{
+    char name[50];
+    int age;
+} Customer;
+
 typedef struct feedback 
 {
     Customer customer;  // Reuse the Customer structure
     char comments[200];
     int rating;  // Assuming an integer rating, you can adjust based on your needs
 } Feedback;
-
-typedef struct customer 
-{
-    char name[50];
-    int age;
-} Customer;
 
 typedef struct sale 
 {
@@ -63,7 +63,85 @@ Feedback *feedback;
 
 char *msg = "Enter$";
 
-void addNewStock() {
+void pressEnterToContinue() 
+{
+    printf("Press Enter to continue...");
+    while (getchar() != '\n');
+    getchar();  // Consume the Enter key
+}
+
+FILE* openFile(const char *fileName, const char *mode) 
+{
+
+    FILE *file = fopen(fileName, mode);
+    if (file == NULL) {
+        perror("Error opening file");
+    }
+    return file;
+}
+
+void closeFile(FILE *file) 
+{
+    if (file != NULL) 
+    {
+        fclose(file);
+    }
+}
+
+void sort()
+{
+    for (int i = 0; i < totalCars - 1; i++) 
+    {
+        for (int j = 0; j < totalCars - i - 1; j++) 
+        {
+            if (cars[j].yearOfManufacture > cars[j + 1].yearOfManufacture) 
+            {
+                // Swap cars[j] and cars[j + 1]
+                Car temp = cars[j];
+                cars[j] = cars[j + 1];
+                cars[j + 1] = temp;
+            }
+        }
+    }
+
+}
+
+char getCharFromUser(char *msg) 
+{
+    char ch;
+    printf("%s", msg);
+    while (getchar() != '\n');
+    scanf("%c", &ch);
+    return ch;
+}
+
+void clearScreen()
+{
+    system("clear");
+}
+
+void prompt(char* msg)
+{
+    printf("%s", msg);
+}
+
+void updateMetadata() 
+{
+    FILE *metadataFile = openFile("metadata.csv", "w");
+    if (metadataFile != NULL) 
+    {
+        fprintf(metadataFile, "%u,%u,%u\n", totalCars, totalSales, totalFeedbacks);
+        closeFile(metadataFile);
+    } 
+    else 
+    {
+        fprintf(stderr, "Error opening metadata.csv file for writing.\n");
+    }
+}
+
+
+void addNewStock() 
+{
     char tempModel[100];
     int tempYear;
     int tempAvail;
@@ -103,10 +181,12 @@ void addNewStock() {
     {
         fprintf(stderr, "Error opening CSV file for writing.\n");
     }
+    updateMetadata();
 }
 
 
-void viewStocks() {
+void viewStocks() 
+{
     int i;
     sort(); 
 
@@ -118,7 +198,8 @@ void viewStocks() {
 }
 
 
-void buyCar() {
+void buyCar() 
+{
     char choice;
     char customerName[50];
     char proof;
@@ -126,8 +207,11 @@ void buyCar() {
     int carIndex, quantity, customerAge;
     float price;
 
+
+
     printf("Hi, your sweet name please: ");
-    scanf("%49[^\n]", customerName);  // Adjusted the format specifier to avoid buffer overflow
+
+    scanf(" %[^\n]", customerName);  // Adjusted the format specifier to avoid buffer overflow
 
     printf("How old are you: ");
     scanf("%d", &customerAge);
@@ -147,8 +231,7 @@ void buyCar() {
         sales[totalSales].discountGiven = 0;
     }
 
-    choice = getCharFromUser("Would you like to re-view the stock before proceeding to buy..\n");
-    prompt(msg);
+    choice = getCharFromUser("Would you like to re-view the stock before proceeding to buy..(y/n)");
 
     if (choice == 'y') 
     {
@@ -157,6 +240,7 @@ void buyCar() {
 
     printf("Enter the serial number of the car: ");
     scanf("%d", &carIndex);
+    --carIndex;
     do 
     {   
         printf("The available number of cars is %d\n", cars[carIndex].availability);
@@ -224,10 +308,12 @@ void buyCar() {
     printf("Car Model: %s\n", cars[carIndex].modelName);
     printf("Total Price: $%.2f\n", sales[totalSales - 1].totalPrice);
     
-    if (sales[totalSales].discountGiven) {
+    if (sales[totalSales - 1].discountGiven) 
+    {
         printf("Discount Applied: Yes\n");
         printf("Discount Value: $%.2f\n", sales[totalSales- 1].discountValue);
-    } else {
+    } else 
+    {
         printf("Discount Applied: No\n");
     }
 
@@ -237,6 +323,7 @@ void buyCar() {
     printf("Purchase Date: %s", ctime(&sales[totalSales - 1].purchaseDate));
     printf("Final Amount: $%.2f\n", price);  // Corrected the format specifier
     printf("************* THANK YOU FOR YOUR PURCHASE *************\n");  
+    updateMetadata();
 }
 
 void viewSalesData() 
@@ -263,6 +350,7 @@ void viewSalesData()
     }
 
     printf("\n************* END OF SALES DATA *************\n");
+    updateMetadata();
 }
 
 
@@ -290,12 +378,12 @@ void getCustomerFeedback()
     char customerName[50];
     char comments[200];
     int rating;
-
+    
     printf("Hi, your sweet name please: ");
-    scanf("%49[^\n]", customerName);
+    scanf("% 49[^\n]", customerName);
 
     printf("Enter your comments: ");
-    scanf("%199[^\n]", comments);
+    scanf("% 199[^\n]", comments);
 
     printf("Enter your rating (1-5): ");
     scanf("%d", &rating);
@@ -319,11 +407,78 @@ void getCustomerFeedback()
     } else {
         fprintf(stderr, "Error opening CSV file for writing.\n");
     }   
+    
+    updateMetadata();
+}
+
+void retrieveCarsFromFile()
+{
+    FILE *carsFile = openFile("cars.csv", "r");
+    if (carsFile == NULL) 
+    {
+        fprintf(stderr, "Error opening cars.csv file for reading.\n");
+        return;
+    }
+
+    for (unsigned int i = 0; i < totalCars; ++i) 
+    {
+        if (fscanf(carsFile, "%99[^,],%d,%d,%f\n", cars[i].modelName, &cars[i].yearOfManufacture, &cars[i].availability, &cars[i].price) != 4) 
+        {
+            fprintf(stderr, "Error reading data from cars.csv.\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    closeFile(carsFile);
+}
+
+void retrieveSalesFromFile() 
+{
+    FILE *salesFile = openFile("sales.csv", "r");
+    if (salesFile == NULL) 
+    {
+        fprintf(stderr, "Error opening sales.csv file for reading.\n");
+        return;
+    }
+
+    for (unsigned int i = 0; i < totalSales; ++i) 
+    {
+        if (fscanf(salesFile, "%99[^,],%f,%d,%f,%d,%49[^,],%d,%ld\n", sales[i].modelName, &sales[i].totalPrice, &sales[i].discountGiven, &sales[i].discountValue, &sales[i].numberOfCars, sales[i].customer.name, &sales[i].customer.age, &sales[i].purchaseDate) != 8) 
+        {
+            fprintf(stderr, "Error reading data from sales.csv.\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    closeFile(salesFile);
+}
+
+void retrieveFeedbacksFromFile() 
+{
+    FILE *feedbackFile = openFile("feedbacks.csv", "r");
+    if (feedbackFile == NULL) 
+    {
+        fprintf(stderr, "Error opening feedbacks.csv file for reading.\n");
+        return;
+    }
+
+    for (unsigned int i = 0; i < totalFeedbacks; ++i) 
+    {
+        if (fscanf(feedbackFile, "%49[^,],%199[^,],%d\n", feedback[i].customer.name, feedback[i].comments, &feedback[i].rating) != 3) 
+        {
+            fprintf(stderr, "Error reading data from feedbacks.csv.\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    closeFile(feedbackFile);
 }
 
 void retrieveDataFromFile()
 {
-
+    retrieveCarsFromFile();
+    retrieveSalesFromFile();
+    retrieveFeedbacksFromFile();
 }
 
 void readMetadataFromFile() 
@@ -340,59 +495,12 @@ void readMetadataFromFile()
     }
 }
 
-void prompt(char* msg)
-{
-    printf("%s", msg);
-}
 
-void clearScreen()
-{
-    system("clear");
-}
-
-void sort()
-{
-    for (int i = 0; i < totalCars - 1; i++) 
-    {
-        for (int j = 0; j < totalCars - i - 1; j++) 
-        {
-            if (cars[j].yearOfManufacture > cars[j + 1].yearOfManufacture) 
-            {
-                // Swap cars[j] and cars[j + 1]
-                Car temp = cars[j];
-                cars[j] = cars[j + 1];
-                cars[j + 1] = temp;
-            }
-        }
-    }
-
-}
-
-FILE* openFile(const char *fileName, const char *mode) {
-    FILE *file = fopen(fileName, mode);
-    if (file == NULL) {
-        perror("Error opening file");
-    }
-    return file;
-}
-
-void closeFile(FILE *file) {
-    if (file != NULL) {
-        fclose(file);
-    }
-}
-
-char getCharFromUser(char *msg) {
-    char ch;
-    printf("%s", msg);
-    while (getchar() != '\n');
-    scanf("%c", &ch);
-    return ch;
-}
 
 
 int main() 
 {
+    clearScreen();
     readMetadataFromFile();
 
     // Allocate memory for the arrays
@@ -400,7 +508,8 @@ int main()
     sales = (Sale *)malloc(2 * totalSales * sizeof(Sale));
     feedback = (Feedback *)malloc(2 * totalFeedbacks * sizeof(Feedback));
 
-    if (cars == NULL || sales == NULL || feedback == NULL) {
+    if (cars == NULL || sales == NULL || feedback == NULL) 
+    {
         fprintf(stderr, "Memory allocation error.\n");
         exit(EXIT_FAILURE);
     }
@@ -412,46 +521,53 @@ int main()
 
     printf("Are you a customer (c) or admin (a): ");
 
-    while (getchar() != '\n');
-
+    fflush(stdin);
     scanf("%c", &userType);
 
+    clearScreen();
     switch (userType) 
     {
-        case ADMIN:
+        case 'a':
                     while (true)
                     {
                         printf("1] Add new Stock.\n");
                         printf("2] View Sales Data.\n");
-                        printf("3] EXIT\n");
-                        printf("Enter your choice: ");
+                        printf("3] EXIT\n\n");
+                        printf("Enter your choice\n ");
                         prompt(msg);
 
-                        while (getchar() != '\n');
+                        fflush(stdin);
                         scanf("%d", &choice);
+
+                        clearScreen();
 
                         switch (choice) 
                         {
                             case 1: addNewStock();
                                     break;
+
                             case 2: viewSalesData(); 
                                     break;
+
                             case 3: goto exit;  // Using goto to break out of the loop
+
                             default: printf("Invalid choice\n");
                         }
                     }
                     break;
-        case CUSTOMER:
+        case 'c':
                        while (true) 
                        {
+                        clearScreen();
                         printf("1] View Stocks.\n");
                         printf("2] Buy a car.\n");
                         printf("3] View or add Customer feedback.\n");
                         printf("4] Exit\n");
-                        printf("Enter your choice: ");
+                        printf("Enter your choice\n");
                         prompt(msg);
 
-                        while (getchar() != '\n');
+                        fflush(stdin);
+
                         scanf("%d", &choice);
 
                         clearScreen();
@@ -460,14 +576,25 @@ int main()
                         {
                             case 1: viewStocks(); 
                                     break;
+
                             case 2: buyCar(); 
+                                    
+                                    printf("Would you like to give us your feedback about our service(y/n) : ");
+                                    fflush(stdin);
+                                    scanf(" %c", &userType);
+                                    if(userType == 'y')
+                                        getCustomerFeedback();
                                     break;
-                            case 3: customerFeedback(); 
+
+                            case 3: viewCustomerFeedback(); 
                                     break;
+
                             case 4: goto exit;  // Using goto to break out of the loop
+
                             default: printf("Invalid choice\n");
                         }
                         
+                        pressEnterToContinue();
                     }
                     break;
         default:
