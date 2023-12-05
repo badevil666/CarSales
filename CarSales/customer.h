@@ -1,9 +1,9 @@
 #ifndef CUSTOMER_H
 #define CUSTOMER_H
 
-struct Customer {
+typedef customer {
     char name[50];
     int age;
-};
+} Customer;
 
 #endif // CUSTOMER_H
