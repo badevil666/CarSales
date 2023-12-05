@@ -10,9 +10,9 @@
 #include "feedback.h"
 #include "customer.h"
 
-unsigned int totalCars;
-unsigned int totalSales;
-unsigned int totalFeedbacks;
+unsigned int totalCars = 0;
+unsigned int totalSales = 0;
+unsigned int totalFeedbacks = 0;
 
 
 Car *cars;
@@ -177,22 +177,128 @@ void buyCar() {
     {
         fprintf(stderr, "Error opening sales.csv file for writing.\n");
     }
+
+    clearScreen();
+    printf("\n\n*************** PURCHASE RECEIPT ***************\n");
+    printf("Car Model: %s\n", cars[carIndex].modelName);
+    printf("Total Price: $%.2f\n", sales[totalSales - 1].totalPrice);
+    
+    if (sales[totalSales].discountGiven) {
+        printf("Discount Applied: Yes\n");
+        printf("Discount Value: $%.2f\n", sales[totalSales- 1].discountValue);
+    } else {
+        printf("Discount Applied: No\n");
+    }
+
+    printf("Number of Cars: %d\n", sales[totalSales - 1].numberOfCars);
+    printf("Customer Name: %s\n", sales[totalSales - 1].Customer.name);
+    printf("Customer Age: %d\n", sales[totalSales - 1].Customer.age);
+    printf("Purchase Date: %s", ctime(&sales[totalSales - 1].purchaseDate));
+    printf("Final Amount: $%.2f\n", price);  // Corrected the format specifier
+    printf("************* THANK YOU FOR YOUR PURCHASE *************\n");  
 }
 
-void viewSalesData()
+void viewSalesData() 
 {
+    if (totalSales == 0) 
+    {
+        printf("No sales data available.\n");
+        return;
+    }
 
+    printf("\n*************** SALES DATA ***************\n");
+    printf("%-20s%-15s%-10s%-10s%-20s%-10s%-20s\n", "Car Model", "Total Price", "Discount", "Discount Value", "Customer Name", "Customer Age", "Purchase Date");
+
+    for (int i = 0; i < totalSales; i++) 
+    {
+        printf("%-20s%-15.2f%-10s%-10.2f%-20s%-10d%-20s", 
+               sales[i].modelName, 
+               sales[i].totalPrice, 
+               sales[i].discountGiven ? "Yes" : "No", 
+               sales[i].discountValue, 
+               sales[i].Customer.name, 
+               sales[i].Customer.age, 
+               ctime(&sales[i].purchaseDate));
+    }
+
+    printf("\n************* END OF SALES DATA *************\n");
 }
 
-void customerFeedback()
-{
 
+void viewCustomerFeedback()
+{
+    int i;
+
+    if (totalFeedbacks == 0) {
+        printf("No feedbacks available.\n");
+        return;
+    }
+
+    printf("\n*************** CUSTOMER FEEDBACKS ***************\n");
+    printf("%-20s%-50s%-10s\n", "Customer Name", "Comments", "Rating");
+
+    for (i = 0; i < totalFeedbacks; i++) {
+        printf("%-20s%-50s%-10d\n", feedback[i].Customer.name, feedback[i].comments, feedback[i].rating);
+    }
+
+    printf("\n************* END OF FEEDBACKS *************\n");
+}
+
+void getCustomerFeedback() 
+{
+    char customerName[50];
+    char comments[200];
+    int rating;
+
+    printf("Hi, your sweet name please: ");
+    scanf("%49[^\n]", customerName);
+
+    printf("Enter your comments: ");
+    scanf("%199[^\n]", comments);
+
+    printf("Enter your rating (1-5): ");
+    scanf("%d", &rating);
+
+    // Allocate memory for feedback array
+    if (feedback == NULL) {
+        fprintf(stderr, "Memory allocation error.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    strcpy(feedback[totalFeedbacks].Customer.name, customerName);
+    snprintf(feedback[totalFeedbacks].comments, sizeof(feedback[totalFeedbacks].comments), "%s", comments);
+    feedback[totalFeedbacks].rating = (rating >= 1 && rating <= 5) ? rating : 0;
+
+    FILE *file = openFile("feedbacks.csv", "a");
+    if (file != NULL) {
+        fprintf(file, "%s,%s,%d\n", customerName, comments, rating);
+        closeFile(file);
+        printf("Feedback submitted successfully!\n");
+        totalFeedbacks++;  // Increment totalFeedbacks after successful addition
+    } else {
+        fprintf(stderr, "Error opening CSV file for writing.\n");
+    }   
 }
 
 void retrieveDataFromFile()
 {
 
 }
+
+void readMetadataFromFile() 
+{
+    FILE *file = openFile("metadata.csv", "r");
+    if (file != NULL) 
+    {
+        fscanf(file, "%u,%u,%u\n", &totalCars, &totalSales, &totalFeedbacks);
+        closeFile(file);
+    } 
+    else 
+    {
+        fprintf(stderr, "Error opening metadata.csv file for reading.\n");
+    }
+}
+
 void prompt(char* msg)
 {
     printf("%s", msg);
@@ -223,8 +329,6 @@ void closeFile(FILE *file) {
     }
 }
 
-#include <stdio.h>
-
 char getCharFromUser(char *msg) {
     char ch;
     printf("%s", msg);
@@ -234,29 +338,47 @@ char getCharFromUser(char *msg) {
 }
 
 
-void main() {
+int main() 
+{
+    readMetadataFromFile();
+
+    // Allocate memory for the arrays
+    cars = (Car *)malloc(2 * totalCars * sizeof(Car));
+    sales = (Sale *)malloc(2 * totalSales * sizeof(Sale));
+    feedback = (Feedback *)malloc(2 * totalFeedbacks * sizeof(Feedback));
+
+    if (cars == NULL || sales == NULL || feedback == NULL) {
+        fprintf(stderr, "Memory allocation error.\n");
+        exit(EXIT_FAILURE);
+    }
+
     retrieveDataFromFile();
 
     int choice;
     char userType;
-    
-    printf("Are you a customer(c) or admin(a) : ");
 
-    
+    printf("Are you a customer (c) or admin (a): ");
+
     while (getchar() != '\n');
 
     scanf("%c", &userType);
+
     
-    if (userType == 'a') {
-        while (true) {
+    if (userType == ADMIN) 
+    {
+        while (true) 
+        {
             printf("1] Add new Stock.\n");
             printf("2] View Sales Data.\n");
             
             
             break;
         }
-    } else {
-        while (true) {
+    }
+    else if(userType == CUSTOMER)
+    {
+        while (true) 
+        {
             printf("What would you like to do.\n\n");
             printf("1] View Stocks.\n");
             printf("2] Buy a car.\n");
@@ -281,4 +403,17 @@ void main() {
             break;
         }
     }
+    else 
+    {
+        // Invalid user type
+        fprintf(stderr, "Invalid user type. Exiting.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Free allocated memory before exiting
+    free(cars);
+    free(sales);
+    free(feedback);
+
+    return 0;
 }
