@@ -32,3 +32,4 @@ This project is a basic car sales management system implemented in C. It allows 
    ```bash
    git clone https://github.com/badevil666/CarSales.git
    cd CarSales
+   
