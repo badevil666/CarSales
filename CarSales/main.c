@@ -327,7 +327,7 @@ void buyCar()
     if (proof == 'y' && customerAge >= DISCOUNT_MIN_AGE && customerAge <= DISCOUNT_MAX_AGE) 
     {
         printf("Hurray! You are eligible for a discount.\n");
-        // You might want to store this information in the sales record as well
+        // To store this information in the sales record as well
         sales[totalSales].discountGiven = 1;
     } 
     else 
