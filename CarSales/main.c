@@ -94,7 +94,7 @@ void sort()
     {
         for (int j = 0; j < totalCars - i - 1; j++) 
         {
-            if (cars[j].yearOfManufacture > cars[j + 1].yearOfManufacture) 
+            if (cars[j].yearOfManufacture < cars[j + 1].yearOfManufacture) 
             {
                 // Swap cars[j] and cars[j + 1]
                 Car temp = cars[j];
@@ -146,9 +146,9 @@ void addNewStock()
     int tempYear;
     int tempAvail;
     float tempPrice;
-
+    getchar();
     printf("Enter the name of the model : ");
-    scanf("%99[^\n]", tempModel);
+    scanf(" %99[^\n]", tempModel);
 
     printf("Enter the year of manufacture: ");
     scanf("%d", &tempYear);
@@ -173,7 +173,7 @@ void addNewStock()
     FILE *file = openFile("cars.csv", "a");
     if (file != NULL) 
     {
-        fprintf(file, "%s,%d,%d,%.2f\n", tempModel, tempYear, tempAvail, tempPrice);
+        fprintf(file, "%s, %d, %d, %.2f\n", tempModel, tempYear, tempAvail, tempPrice);
         closeFile(file);
         printf("New stock added successfully!\n");
         totalCars++;  // Increment totalCars after successful addition
@@ -208,7 +208,7 @@ void buyCar()
     float price;
 
 
-
+    getchar();
     printf("Hi, your sweet name please: ");
 
     scanf(" %[^\n]", customerName);  // Adjusted the format specifier to avoid buffer overflow
@@ -283,18 +283,18 @@ void buyCar()
     FILE *salesFile = openFile("sales.csv", "a");
     if (salesFile != NULL) 
     {
-        fprintf(salesFile, "%s,%.2f,%d,%.2f,%d,%s,%d,%ld\n",
-            cars[carIndex].modelName,
-            cars[carIndex].price * quantity,
-            sales[totalSales].discountGiven,
-            price,
-            quantity,
-            customerName,
-            customerAge,
-            time(NULL)
+        fprintf(salesFile, "%s, %.2f, %d, %.2f, %d, %s, %d, %ld\n",
+        cars[carIndex].modelName,
+        cars[carIndex].price * quantity,
+        sales[totalSales].discountGiven,
+        price,
+        quantity,
+        customerName,
+        customerAge,
+        time(NULL)
         );
 
-        closeFile(salesFile);  // Assuming closeFile doesn't have additional logic
+        closeFile(salesFile);  
         totalSales++;  // Increment totalSales after successful addition
         printf("\n\nCongratulations! Your purchase is completed successfully.\n\n");
     } 
@@ -378,16 +378,15 @@ void getCustomerFeedback()
     char customerName[50];
     char comments[200];
     int rating;
-    
+    getchar();
     printf("Hi, your sweet name please: ");
-    scanf("% 49[^\n]", customerName);
+    scanf(" %[^\n]", customerName);
 
     printf("Enter your comments: ");
-    scanf("% 199[^\n]", comments);
+    scanf(" %[^\n]", comments);
 
     printf("Enter your rating (1-5): ");
-    scanf("%d", &rating);
-
+    scanf(" %d", &rating);
     // Allocate memory for feedback array
     if (feedback == NULL) {
         fprintf(stderr, "Memory allocation error.\n");
@@ -400,11 +399,13 @@ void getCustomerFeedback()
 
     FILE *file = openFile("feedbacks.csv", "a");
     if (file != NULL) {
-        fprintf(file, "%s,%s,%d\n", customerName, comments, rating);
+        fprintf(file, "%s, %s, %d\n", customerName, comments, rating);
         closeFile(file);
         printf("Feedback submitted successfully!\n");
         totalFeedbacks++;  // Increment totalFeedbacks after successful addition
-    } else {
+    } 
+    else 
+    {
         fprintf(stderr, "Error opening CSV file for writing.\n");
     }   
     
